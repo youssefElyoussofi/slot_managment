@@ -5,3 +5,8 @@ spring:
     url: jdbc:postgresql://localhost:5432/test
     username: test
     password: test
+  jpa:
+    hibernate:
+      ddl-auto: update
+  jackson:
+    time-zone: Africa/Casablanca

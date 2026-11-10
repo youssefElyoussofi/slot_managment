@@ -6,6 +6,7 @@ import backend.slot_managment.services.SlotService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,12 @@ public class SlotController {
 
     @PostMapping("/slots/generate")
     public ResponseEntity<List<SlotResponse>> generateSlots(@Valid @RequestBody GenerateSlotsRequest request){
-        return ResponseEntity.ok(slotService.createSlot(request));
+        return ResponseEntity.ok(slotService.generateSlots(request));
     }
+
+    @GetMapping("/slots")
+    public ResponseEntity<List<SlotResponse>> getSlots(){
+        return ResponseEntity.ok(slotService.getSlots());
+    }
+
 }

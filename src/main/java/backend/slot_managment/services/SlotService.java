@@ -18,7 +18,7 @@ public class SlotService {
     private final SlotRepository slotRepository;
 
     @Transactional
-    public List<SlotResponse> createSlot(GenerateSlotsRequest request){
+    public List<SlotResponse> generateSlots(GenerateSlotsRequest request){
         ZoneId zoneId = ZoneId.of("Africa/Casablanca");
 
         if (request.toDate().compareTo(request.fromDate()) <= 0)
@@ -33,13 +33,15 @@ public class SlotService {
         LocalDate currDate = request.fromDate();
 
         List<SlotResponse> slotResponseList = new ArrayList<>();
-        while (request.toDate().compareTo(currDate) >= 0){
-            if (request.skipWeekends() && isWeekends(currDate))
-                continue;
-            while (strictEnd.compareTo(strictStart) > 0){
 
-                Instant slotStartsAt = LocalDateTime.of(currDate, strictStart).atZone(zoneId).toInstant();
-                Instant slotEndsAt = LocalDateTime.of(currDate, strictStart.plusHours(1)).atZone(zoneId).toInstant();
+
+        for (LocalDate day = request.fromDate(); request.toDate().compareTo(day) >= 0; day = day.plusDays(1)){
+            if (request.skipWeekends() && isWeekends(day))
+                continue;
+            for (LocalTime time = strictStart; strictEnd.compareTo(time) > 0;time = time.plusHours(1)){
+
+                Instant slotStartsAt = LocalDateTime.of(day, time).atZone(zoneId).toInstant();
+                Instant slotEndsAt = LocalDateTime.of(day, time.plusHours(1)).atZone(zoneId).toInstant();
                 if (slotRepository.existsByStartsAt(slotStartsAt) || slotStartsAt.isBefore(Instant.now()))
                     continue;
                 Slot slot = new Slot();
@@ -50,17 +52,20 @@ public class SlotService {
 
                 Slot saved = slotRepository.save(slot);
                 slotResponseList.add(SlotResponse.from(saved));
-
-                strictStart = strictStart.plusHours(1);
             }
-
-            currDate = currDate.plusDays(1);
         }
         return slotResponseList;
+    }
+
+//    @Transactional(readOnly = true)
+    public List<SlotResponse> getSlots(){
+        return SlotResponse.buildList(slotRepository.findAllBy());
     }
 
     private boolean isWeekends(LocalDate date){
         DayOfWeek day = date.getDayOfWeek();
         return day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY;
     }
+
+
 }
